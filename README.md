@@ -1,1 +1,2 @@
 # redis_distributed_lock
+Learn redis distributed lock in golang from [Golang Redis Distributed Lock Tutorial](https://mp.weixin.qq.com/s?__biz=MzkxMjQzMjA0OQ==&mid=2247484313&idx=1&sn=905342d3fc1cdaf845a62a140bd5247e) 
