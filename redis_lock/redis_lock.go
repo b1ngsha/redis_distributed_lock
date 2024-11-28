@@ -1,11 +1,14 @@
 package redis_lock
 
-import "errors"
+import (
+	"errors"
+	"redis_distributed_lock/utils"
+)
 
-var LockAcquiredByOthersErr = errors.New("Lock is acquired by others")
+var ErrLockAcquiredByOthers = errors.New("lock is acquired by others")
 
 func IsAcquiredErr(err error) bool {
-	return errors.Is(err, LockAcquiredByOthersErr)
+	return errors.Is(err, ErrLockAcquiredByOthers)
 }
 
 type RedisLock struct {
