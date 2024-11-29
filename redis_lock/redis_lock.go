@@ -13,6 +13,16 @@ var ErrLockAcquiredByOthers = errors.New("lock is acquired by others")
 const (
 	redisLockKeyPrefix = "REDIS_LOCK_"
 	tickerDuration     = 50
+    luaCheckAndDeleteLockScript = `
+        local lockKey = KEYS[1]
+        local lockToken = ARGV[1]
+        local currentToken = redis.call('GET', lockKey)
+        if (not currentToken or currentToken ~= lockToken) then
+            return 0
+        else
+            return redis.call('DEL', lockKey)
+        end
+    `
 )
 
 func isRetryableErr(err error) bool {
@@ -98,4 +108,16 @@ func (lock *RedisLock) Lock(ctx context.Context) error {
 	}
 
 	return lock.blockingLock(ctx)
+}
+
+func (lock *RedisLock) Unlock(ctx context.Context) error {
+    keysAndArgs := []interface{}{lock.getLockKey(), lock.token}
+    res, err := lock.client.Eval(ctx, luaCheckAndDeleteLockScript, 1, keysAndArgs)
+    if err != nil {
+        return err
+    }
+    if ret, _ := res.(int64); ret != 1 {
+        return errors.New("can not unlock without ownership of lock")
+    }
+    return nil
 }
